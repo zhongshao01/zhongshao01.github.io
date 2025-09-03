@@ -1,0 +1,218 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+  <title>加载中...</title>
+  <style>
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      width: 100%; 
+      height: 100%; 
+      overflow: hidden; 
+      font-family: Arial, sans-serif;
+    }
+    .content { 
+      position: fixed; 
+      width: 100%; 
+      height: 100%; 
+      left: 0; 
+      top: 0; 
+      border: none; 
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .error-tip { 
+      font-size: 24px; 
+      color: red; 
+      text-align: center; 
+      line-height: 100vh; 
+      display: none; 
+      padding: 0 20px; 
+    }
+    .loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-in-out;
+    }
+    /* 美化的加载圆圈 - 多层次效果 */
+    .spinner-container {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 25px;
+    }
+    
+    .spinner {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      animation: spin 2s linear infinite;
+    }
+    
+    .spinner-outer {
+      border: 4px solid rgba(52, 152, 219, 0.1);
+      border-top-color: #3498db;
+    }
+    
+    .spinner-middle {
+      width: 70%;
+      height: 70%;
+      top: 15%;
+      left: 15%;
+      border: 4px solid rgba(155, 89, 182, 0.1);
+      border-top-color: #9b59b6;
+      animation-duration: 1.5s;
+      animation-direction: reverse;
+    }
+    
+    .spinner-inner {
+      width: 40%;
+      height: 40%;
+      top: 30%;
+      left: 30%;
+      border: 3px solid rgba(46, 204, 113, 0.1);
+      border-top-color: #2ecc71;
+      animation-duration: 1s;
+    }
+    
+    .loading-text {
+      color: #333;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    
+    .loading-progress {
+      width: 150px;
+      height: 4px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 2px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3498db, #9b59b6, #2ecc71);
+      background-size: 200% 100%;
+      width: 0%;
+      border-radius: 2px;
+      animation: progress 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes progress {
+      0% { width: 0%; background-position: 0% 50%; }
+      50% { width: 70%; background-position: 100% 50%; }
+      100% { width: 0%; background-position: 0% 50%; }
+    }
+  </style>
+<style type="text/css" id="__via_marker__"></style></head>
+<body>
+  <!-- 加载动画 -->
+  <div class="loader" id="loader">
+    <div class="spinner-container">
+      <div class="spinner spinner-outer"></div>
+      <div class="spinner spinner-middle"></div>
+      <div class="spinner spinner-inner"></div>
+    </div>
+    <div class="loading-text">正在加载内容...</div>
+    <div class="loading-progress">
+      <div class="progress-bar"></div>
+    </div>
+    <div class="error-tip">无效的URL参数</div>
+  </div>
+
+  <script>
+    // 显示加载动画
+    document.getElementById('loader').style.display = 'flex';
+    
+    // 解析URL参数
+    var urlParams = new URLSearchParams(window.location.search); 
+    var encodedParam = urlParams.get('xl'); 
+    var tureurl = encodedParam ? atob(encodedParam) : ''; 
+    
+    // 模拟进度更新
+    let progress = 0;
+    const progressBar = document.querySelector('.progress-bar');
+    const progressInterval = setInterval(() => {
+      if (progress < 80) {
+        progress += Math.random() * 10;
+        if (progress > 80) progress = 80;
+        progressBar.style.width = progress + '%';
+      }
+    }, 300);
+    
+    if (tureurl && tureurl.includes("http")) {
+      // 创建iframe
+      var iframe = document.createElement('iframe');
+      iframe.className = 'content';
+      iframe.src = tureurl;
+      iframe.onload = function() {
+        // 加载完成，完成进度条
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        
+        // 短暂延迟后隐藏加载动画
+        setTimeout(() => {
+          // 加载完成后淡入iframe并淡出加载动画
+          iframe.style.opacity = '1';
+          var loader = document.getElementById('loader');
+          loader.style.opacity = '0';
+          setTimeout(function() {
+            loader.style.display = 'none';
+          }, 500);
+          
+          // 绑定鼠标滚轮事件
+          bindMouseWhee(iframe);
+        }, 500);
+      };
+      document.body.appendChild(iframe); 
+      console.log(tureurl);
+    } else { 
+      // 没有有效URL时显示错误信息
+      console.log("nourls"); 
+      clearInterval(progressInterval);
+      document.querySelector('.spinner-container').style.display = 'none';
+      document.querySelector('.loading-text').style.display = 'none';
+      document.querySelector('.loading-progress').style.display = 'none';
+      document.querySelector('.error-tip').style.display = 'block';
+    }
+    
+    // 鼠标滚轮处理函数
+    var firefox = navigator.userAgent.indexOf('Firefox') != -1; 
+    function MouseWheel(e, doc) { 
+      e.preventDefault && e.preventDefault(), e.returnValue = false; 
+      var up = firefox && e.detail < 0 || e.wheelDelta > 0; 
+      doc.body.scrollTop = doc.documentElement.scrollTop += up ? -50 : 50; 
+    }
+    
+    function bindMouseWhee(ifr) {
+      try { 
+        var doc = ifr.contentWindow.document; 
+        firefox ? doc.addEventListener('DOMMouseScroll', function (e) { MouseWheel(e, doc) }, false) : 
+                 (doc.onmousewheel = function (e) { MouseWheel(e || ifr.contentWindow.event, doc) }); 
+      } catch (e) { 
+        console.error('Error' + e); 
+      }
+    }
+  </script>
+</body>
+</html>
+    
